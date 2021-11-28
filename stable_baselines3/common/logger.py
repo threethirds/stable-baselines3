@@ -8,9 +8,7 @@ from collections import defaultdict
 from typing import Any, Dict, List, Optional, Sequence, TextIO, Tuple, Union
 
 import numpy as np
-import pandas
 import torch as th
-from matplotlib import pyplot as plt
 
 try:
     from torch.utils.tensorboard import SummaryWriter
@@ -45,7 +43,7 @@ class Figure(object):
     :param close: if true, close the figure after logging it
     """
 
-    def __init__(self, figure: plt.figure, close: bool):
+    def __init__(self, figure, close: bool):
         self.figure = figure
         self.close = close
 
@@ -584,32 +582,3 @@ def configure(folder: Optional[str] = None, format_strings: Optional[List[str]] 
     if len(format_strings) > 0 and format_strings != ["stdout"]:
         logger.log(f"Logging to {folder}")
     return logger
-
-
-# ================================================================
-# Readers
-# ================================================================
-
-
-def read_json(filename: str) -> pandas.DataFrame:
-    """
-    read a json file using pandas
-
-    :param filename: the file path to read
-    :return: the data in the json
-    """
-    data = []
-    with open(filename, "rt") as file_handler:
-        for line in file_handler:
-            data.append(json.loads(line))
-    return pandas.DataFrame(data)
-
-
-def read_csv(filename: str) -> pandas.DataFrame:
-    """
-    read a csv file using pandas
-
-    :param filename: the file path to read
-    :return: the data in the csv
-    """
-    return pandas.read_csv(filename, index_col=None, comment="#")

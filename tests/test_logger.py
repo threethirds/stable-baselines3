@@ -1,9 +1,11 @@
 import os
+import json
 import time
 from typing import Sequence
 
 import gym
 import numpy as np
+import pandas
 import pytest
 import torch as th
 from matplotlib import pyplot as plt
@@ -23,9 +25,31 @@ from stable_baselines3.common.logger import (
     Video,
     configure,
     make_output_format,
-    read_csv,
-    read_json,
 )
+
+def read_json(filename: str) -> pandas.DataFrame:
+    """
+    read a json file using pandas
+
+    :param filename: the file path to read
+    :return: the data in the json
+    """
+    data = []
+    with open(filename, "rt") as file_handler:
+        for line in file_handler:
+            data.append(json.loads(line))
+    return pandas.DataFrame(data)
+
+
+def read_csv(filename: str) -> pandas.DataFrame:
+    """
+    read a csv file using pandas
+
+    :param filename: the file path to read
+    :return: the data in the csv
+    """
+    return pandas.read_csv(filename, index_col=None, comment="#")
+
 
 KEY_VALUES = {
     "test": 1,

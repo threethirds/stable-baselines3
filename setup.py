@@ -78,10 +78,6 @@ setup(
         "torch>=1.8.1",
         # For saving models
         "cloudpickle",
-        # For reading logs
-        "pandas",
-        # Plotting learning curves
-        "matplotlib",
     ],
     extras_require={
         "tests": [
@@ -102,6 +98,9 @@ setup(
             "black",
             # For toy text Gym envs
             "scipy>=1.4.1",
+            # For plotter
+            "pandas",
+            "matplotlib"
         ],
         "docs": [
             "sphinx",

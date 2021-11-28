@@ -1,3 +1,4 @@
+import json
 from typing import Callable, List, Optional, Tuple
 
 import numpy as np
@@ -7,7 +8,9 @@ import pandas as pd
 # matplotlib.use('TkAgg')  # Can change to 'Agg' for non-interactive mode
 from matplotlib import pyplot as plt
 
-from stable_baselines3.common.monitor import load_results
+from stable_baselines3.common.monitor import get_monitor_files
+from stable_baselines3.common.monitor import LoadMonitorResultsError
+from stable_baselines3.common.monitor import Monitor
 
 X_TIMESTEPS = "timesteps"
 X_EPISODES = "episodes"
@@ -120,3 +123,30 @@ def plot_results(
         data_frames.append(data_frame)
     xy_list = [ts2xy(data_frame, x_axis) for data_frame in data_frames]
     plot_curves(xy_list, x_axis, task_name, figsize)
+
+
+def load_results(path: str) -> pd.DataFrame:
+    """
+    Load all Monitor logs from a given directory path matching ``*monitor.csv``
+
+    :param path: the directory path containing the log file(s)
+    :return: the logged data
+    """
+    monitor_files = get_monitor_files(path)
+    if len(monitor_files) == 0:
+        raise LoadMonitorResultsError(f"No monitor files of the form *{Monitor.EXT} found in {path}")
+    data_frames, headers = [], []
+    for file_name in monitor_files:
+        with open(file_name, "rt") as file_handler:
+            first_line = file_handler.readline()
+            assert first_line[0] == "#"
+            header = json.loads(first_line[1:])
+            data_frame = pd.read_csv(file_handler, index_col=None)
+            headers.append(header)
+            data_frame["t"] += header["t_start"]
+        data_frames.append(data_frame)
+    data_frame = pd.concat(data_frames)
+    data_frame.sort_values("t", inplace=True)
+    data_frame.reset_index(inplace=True)
+    data_frame["t"] -= min(header["t_start"] for header in headers)
+    return data_frame

@@ -1,4 +1,4 @@
-__all__ = ["Monitor", "ResultsWriter", "get_monitor_files", "load_results"]
+__all__ = ["Monitor", "ResultsWriter", "get_monitor_files", "LoadMonitorResultsError"]
 
 import csv
 import json
@@ -9,7 +9,6 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import gym
 import numpy as np
-import pandas
 
 from stable_baselines3.common.type_aliases import GymObs, GymStepReturn
 
@@ -209,30 +208,3 @@ def get_monitor_files(path: str) -> List[str]:
     :return: the log files
     """
     return glob(os.path.join(path, "*" + Monitor.EXT))
-
-
-def load_results(path: str) -> pandas.DataFrame:
-    """
-    Load all Monitor logs from a given directory path matching ``*monitor.csv``
-
-    :param path: the directory path containing the log file(s)
-    :return: the logged data
-    """
-    monitor_files = get_monitor_files(path)
-    if len(monitor_files) == 0:
-        raise LoadMonitorResultsError(f"No monitor files of the form *{Monitor.EXT} found in {path}")
-    data_frames, headers = [], []
-    for file_name in monitor_files:
-        with open(file_name, "rt") as file_handler:
-            first_line = file_handler.readline()
-            assert first_line[0] == "#"
-            header = json.loads(first_line[1:])
-            data_frame = pandas.read_csv(file_handler, index_col=None)
-            headers.append(header)
-            data_frame["t"] += header["t_start"]
-        data_frames.append(data_frame)
-    data_frame = pandas.concat(data_frames)
-    data_frame.sort_values("t", inplace=True)
-    data_frame.reset_index(inplace=True)
-    data_frame["t"] -= min(header["t_start"] for header in headers)
-    return data_frame
